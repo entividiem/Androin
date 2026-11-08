@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dip">
+
+        <TextView
+            android:id="@+id/androidtext"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="fortnite" />
+
+        <TextView
+            android:id="@+id/androidtext2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="fortnite2" />
+
+        <TextView
+            android:id="@+id/androidtext4"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="fortnite4" />
+
+        <TextView
+            android:id="@+id/androidtext5"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="fortnite5" />
+
+        <TextView
+            android:id="@+id/androidtext6"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="fortnite6" />
+
+        <TextView
+            android:id="@+id/androidtext3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="fortnite3" />
+
+        <TextView
+            android:id="@+id/androidtext8"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="fortnite8" />
+
+        <TextView
+            android:id="@+id/androidtext9"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="fortnite9" />
+
+        <TextView
+            android:id="@+id/androidtext10"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="fortnite10" />
+
+        <ImageView
+            android:id="@+id/mascot_gjinka"
+            android:layout_width="match_parent"
+            android:layout_height="500dp"
+            android:adjustViewBounds="false"
+            android:scaleType="fitCenter"
+            android:contentDescription="Android shit" />
+
+        <!-- speaker testie -->
+        <Button
+            android:id="@+id/btnLeft"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="left sound" />
+
+        <Button
+            android:id="@+id/btnRight"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="rigght sound" />
+
+        <Button
+            android:id="@+id/btnBoth"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="vibro??" />
+
+        <Button
+            android:id="@+id/btnStop"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Stop it now bruh" />
+
+    </LinearLayout>
+</ScrollView>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- API 4-12: large/xlarge screen = tablet (7in Galaxy Tab etc) -->
+    <bool name="is_tablet">true</bool>
+</resources>
