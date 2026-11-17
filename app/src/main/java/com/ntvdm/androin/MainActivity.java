@@ -1,15 +1,13 @@
 package com.ntvdm.androin;
 
 import android.app.Activity;
-import android.media.AudioFormat;
-import android.media.AudioManager;
-import android.media.AudioTrack;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.StatFs;
+import android.util.DisplayMetrics;
 import android.view.View;
-import android.widget.Button;
+import android.view.Window;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -17,25 +15,19 @@ import android.widget.TextView;
 
 public class MainActivity extends Activity {
 
-    private static final int SAMPLE_RATE = 44100;
-    private static final double FREQUENCY = 1000.0; // 1 kHz test tone
-    private static final short AMPLITUDE = 12000;    // leaves headroom, avoids clipping
-
-    private static final int MODE_OFF = 0;
-    private static final int MODE_LEFT = 1;
-    private static final int MODE_RIGHT = 2;
-
-    private AudioTrack audioTrack;
-    private Thread playThread;
-    private volatile int soundMode = MODE_OFF;
-    private volatile boolean soundRunning = true;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        setTitle("Android " + android.os.Build.VERSION.RELEASE);
+        if ("0.9_r1".equals(android.os.Build.ID)) {
+            setTitle("Android " + android.os.Build.ID);
+        } else {
+            setTitle("Android " + Build.VERSION.RELEASE);
+        }
 
         // wall of find
         TextView text1 = (TextView) findViewById(R.id.androidtext);
@@ -47,7 +39,8 @@ public class MainActivity extends Activity {
         TextView text8 = (TextView) findViewById(R.id.androidtext8);
         TextView text9 = (TextView) findViewById(R.id.androidtext9);
         TextView text10 = (TextView) findViewById(R.id.androidtext10);
-
+        TextView text11 = (TextView) findViewById(R.id.androidtext11);
+        TextView text12 = (TextView) findViewById(R.id.androidtext12);
 
         text1.setText(android.os.Build.BRAND + " " + android.os.Build.MODEL);
         text2.setText("Root: " + (isRooted() ? "damn u rooted" : "no root sir"));
@@ -58,10 +51,13 @@ public class MainActivity extends Activity {
         android.app.ActivityManager.MemoryInfo memInfo =
                 new android.app.ActivityManager.MemoryInfo();
 
-        am.getMemoryInfo(memInfo);
+        try {
+            am.getMemoryInfo(memInfo);
+        } catch (Exception e) {
+            // fallback if activity manager acts up on prehistoric builds
+        }
 
         long availableMegs = memInfo.availMem / (1024 * 1024);
-
         long totalMegs = -1;
 
         // code i stole of some random forum
@@ -87,10 +83,8 @@ public class MainActivity extends Activity {
 
         text3.setText("RAMies: " + availableMegs + " MB / " + totalMegs + " MB");
 
-
-
         long seconds = android.os.SystemClock.elapsedRealtime() / 1000;
-        long hours = seconds / 3600; //by 3600 ms
+        long hours = seconds / 3600; // by 3600 ms
         text4.setText("suffering for " + hours + " hours");
 
         // ARCHITECUTTURE // + cpu core count/clock speed in one line
@@ -99,26 +93,41 @@ public class MainActivity extends Activity {
 
         text6.setText("bord: " + Build.BOARD);
 
-
         // storage space, internal app dir so it works with no permissions
         text8.setText("storage: " + readStorageInfo());
 
         // full kernel build string, more detail than Build.VERSION gives you
-        text9.setText("kernel: " + readKernelVersion());
+        text9.setText("kernel: " + System.getProperty("os.version"));
 
-        // tablet check, the resource system does the 600dp math for us
-        // (see res/values*/bools.xml), safe all the way down to API 1
-        boolean isTablet = getResources().getBoolean(R.bool.is_tablet);
+        // calculate dp for tablet check (under 600dp = phone)
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+
+        boolean isTablet = false;
+        try {
+            float smallestWidthDp = Math.min(displayMetrics.widthPixels, displayMetrics.heightPixels) / displayMetrics.density;
+            isTablet = smallestWidthDp >= 600;
+        } catch (Exception e) {
+            isTablet = false;
+        }
         text10.setText("Is Tablet: " + (isTablet ? "yes, big boi" : "nah, phone"));
 
+        text11.setText("screenie: " + displayMetrics.widthPixels + " x " + displayMetrics.heightPixels + " and dpi:" + (displayMetrics.density * 160f));
 
-        // mandetory gjinka check
+        text12.setText("what will come here is a mystery to android kind");
+
+        // mandatory gijinka check
         final ImageView mascot = (ImageView) findViewById(R.id.mascot_gjinka);
 
         if (mascot != null) {
             mascot.setVisibility(View.VISIBLE);
 
-            int sdk = Integer.parseInt(android.os.Build.VERSION.SDK);
+            int sdk = 1;
+            try {
+                sdk = Integer.parseInt(android.os.Build.VERSION.SDK);
+            } catch (Exception e) {
+                sdk = 1;
+            }
 
             if (sdk >= 37) { // LATEST ASSHOLE
                 mascot.setImageResource(R.drawable.gjinka_cynthia);
@@ -140,7 +149,7 @@ public class MainActivity extends Activity {
                 mascot.setImageResource(R.drawable.gjinka_paifira);
             } else if (sdk >= 26 && sdk <= 27) { // octopus head
                 mascot.setImageResource(R.drawable.gjinka_oaklee);
-            } else if (sdk >= 24 && sdk <= 25) { // material girl
+            } else if (sdk >= 24 && sdk <= 25) { // cat woman, screw nougats
                 mascot.setImageResource(R.drawable.gjinka_nina);
             } else if (sdk == 23) { // fluff v6
                 mascot.setImageResource(R.drawable.gjinka_marshymo);
@@ -164,11 +173,12 @@ public class MainActivity extends Activity {
                 mascot.setImageResource(R.drawable.gjinka_donna);
             } else if (sdk == 3) { // some ass Cupcake
                 mascot.setImageResource(R.drawable.gjinka_capri);
+            } else if ("0.9_r1".equals(android.os.Build.ID)) {
+                mascot.setImageResource(R.drawable.gjinka_zeronine);
             } else {
                 // else??? 1 and 2 = JUNKDROID
                 mascot.setImageResource(R.drawable.gjinka_apphie);
             }
-
 
             mascot.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -176,141 +186,17 @@ public class MainActivity extends Activity {
                     android.widget.Toast.makeText(
                             MainActivity.this,
                             "stop tapping",
-                            android.widget.Toast.LENGTH_SHORT                   ).show();
+                            android.widget.Toast.LENGTH_SHORT).show();
                 }
             });
-
-
-        }
-
-
-        // here lies my hope
-        // start of code i didnt write underneath :(
-
-        // speaker channel tester buttons
-        Button btnLeft = (Button) findViewById(R.id.btnLeft);
-        Button btnRight = (Button) findViewById(R.id.btnRight);
-        Button btnBoth = (Button) findViewById(R.id.btnBoth);
-        Button btnStop = (Button) findViewById(R.id.btnStop);
-
-        btnLeft.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) { soundMode = MODE_LEFT; }
-        });
-        btnRight.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) { soundMode = MODE_RIGHT; }
-        });
-        // Re-purpose the button (formerly btnBoth) for haptics
-        Button btnVibrate = (Button) findViewById(R.id.btnBoth);
-
-        btnVibrate.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                // Stop audio so it doesn't clash
-                soundMode = MODE_OFF;
-
-                android.os.Vibrator vibrator = (android.os.Vibrator) getSystemService(VIBRATOR_SERVICE);
-                        @SuppressWarnings("deprecation")
-                        long duration = 400;
-                        vibrator.vibrate(duration);
-            }
-        });
-        btnStop.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) { soundMode = MODE_OFF; }
-        });
-
-        startAudioThread();
-    }
-
-
-    @SuppressWarnings("deprecation")
-    private void startAudioThread() {
-
-        int channelConfig = AudioFormat.CHANNEL_OUT_STEREO;
-        int minBufSize = AudioTrack.getMinBufferSize(SAMPLE_RATE,
-                channelConfig, AudioFormat.ENCODING_PCM_16BIT);
-        if (minBufSize <= 0) {
-            channelConfig = AudioFormat.CHANNEL_CONFIGURATION_STEREO;
-            minBufSize = AudioTrack.getMinBufferSize(SAMPLE_RATE,
-                    channelConfig, AudioFormat.ENCODING_PCM_16BIT);
-        }
-        if (minBufSize <= 0) {
-            minBufSize = 4096;
-        }
-        final int bufSize = minBufSize;
-
-        try {
-            audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, SAMPLE_RATE,
-                    channelConfig, AudioFormat.ENCODING_PCM_16BIT,
-                    bufSize, AudioTrack.MODE_STREAM);
-        } catch (IllegalArgumentException e) {
-            // belt and suspenders: whichever constant we picked above got
-            // rejected anyway, so brute-force try the other one
-            int fallbackConfig = (channelConfig == AudioFormat.CHANNEL_OUT_STEREO)
-                    ? AudioFormat.CHANNEL_CONFIGURATION_STEREO
-                    : AudioFormat.CHANNEL_OUT_STEREO;
-            audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, SAMPLE_RATE,
-                    fallbackConfig, AudioFormat.ENCODING_PCM_16BIT,
-                    bufSize, AudioTrack.MODE_STREAM);
-        }
-        audioTrack.play();
-
-        soundRunning = true;
-        playThread = new Thread(new Runnable() {
-            public void run() {
-                // frames = stereo sample pairs; buffer holds L,R,L,R,...
-                int framesPerChunk = bufSize / 4;
-                short[] buffer = new short[framesPerChunk * 2];
-                double phase = 0.0;
-                double phaseStep = 2.0 * Math.PI * FREQUENCY / SAMPLE_RATE;
-
-                while (soundRunning) {
-                    int localMode = soundMode;
-                    for (int i = 0; i < framesPerChunk; i++) {
-                        short sample = (short) (Math.sin(phase) * AMPLITUDE);
-                        phase += phaseStep;
-
-                        short left = 0;
-                        short right = 0;
-                        if (localMode == MODE_LEFT) {
-                            left = sample;
-                        } else if (localMode == MODE_RIGHT) {
-                            right = sample;
-                        }
-                        // MODE_OFF leaves both at 0 (silence)
-
-                        buffer[i * 2] = left;
-                        buffer[i * 2 + 1] = right;
-                    }
-                    audioTrack.write(buffer, 0, buffer.length);
-                }
-            }
-        });
-        playThread.start();
-    }
-
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        soundRunning = false;
-        if (playThread != null) {
-            try {
-                playThread.join(500);
-            } catch (InterruptedException e) {
-                // ignore, we're tearing you down anyway so run
-            }
-        }
-        if (audioTrack != null) {
-            audioTrack.stop();
-            audioTrack.release();
         }
     }
 
-
+    // back to musteys jank way of checking root
     private boolean isRooted() {
         Process process = null;
         try {
             process = Runtime.getRuntime().exec("su");
-            // weird code
             return true;
         } catch (Exception e) {
             return false;
@@ -321,25 +207,19 @@ public class MainActivity extends Activity {
         }
     }
 
-
-    @SuppressWarnings("deprecation") // the long-returning StatFs methods are API18+,
-                                      // these old ones are the only ones that work back to API1
+    @SuppressWarnings("deprecation")
     private String readStorageInfo() {
         try {
             StatFs internal = new StatFs(getFilesDir().getAbsolutePath());
-            long intFreeMb = (long) internal.getAvailableBlocks()
-                    * internal.getBlockSize() / (1024 * 1024);
-            long intTotalMb = (long) internal.getBlockCount()
-                    * internal.getBlockSize() / (1024 * 1024);
+            long intFreeMb = (long) internal.getAvailableBlocks() * internal.getBlockSize() / (1024 * 1024);
+            long intTotalMb = (long) internal.getBlockCount() * internal.getBlockSize() / (1024 * 1024);
 
             String result = "internal " + intFreeMb + "MB free / " + intTotalMb + "MB";
 
             try {
                 StatFs ext = new StatFs(Environment.getExternalStorageDirectory().getAbsolutePath());
-                long extFreeMb = (long) ext.getAvailableBlocks()
-                        * ext.getBlockSize() / (1024 * 1024);
-                long extTotalMb = (long) ext.getBlockCount()
-                        * ext.getBlockSize() / (1024 * 1024);
+                long extFreeMb = (long) ext.getAvailableBlocks() * ext.getBlockSize() / (1024 * 1024);
+                long extTotalMb = (long) ext.getBlockCount() * ext.getBlockSize() / (1024 * 1024);
                 result += ", external " + extFreeMb + "MB free / " + extTotalMb + "MB";
             } catch (Exception ignore) {
                 // no external storage, whatever
@@ -351,9 +231,13 @@ public class MainActivity extends Activity {
         }
     }
 
-
     private String readCpuInfo() {
-        int cores = Runtime.getRuntime().availableProcessors();
+        int cores = 1;
+        try {
+            cores = Runtime.getRuntime().availableProcessors();
+        } catch (Exception e) {
+            cores = 1;
+        }
 
         String freq = "?";
         try {
@@ -367,22 +251,9 @@ public class MainActivity extends Activity {
                 freq = (khz / 1000) + "MHz";
             }
         } catch (Exception e) {
-            // no cpufreq node, or no permission, don't care
+            // no cpufreq node, don't care
         }
 
         return cores + " core(s) @ " + freq;
-    }
-
-
-    private String readKernelVersion() {
-        try {
-            java.io.BufferedReader reader = new java.io.BufferedReader(
-                    new java.io.FileReader("/proc/version"));
-            String line = reader.readLine();
-            reader.close();
-            return line != null ? line : System.getProperty("os.version");
-        } catch (Exception e) {
-            return System.getProperty("os.version");
-        }
     }
 }
